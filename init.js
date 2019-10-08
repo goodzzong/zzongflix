@@ -1,5 +1,10 @@
+import dotenv from 'dotenv';
 import app from './app';
+import './models/Video';
+import './models/Comment';
 
-const PORT = 4000;
+dotenv.config();
+
+const { PORT } = process.env;
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}!`));
