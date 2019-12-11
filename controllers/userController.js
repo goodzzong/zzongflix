@@ -77,6 +77,49 @@ export const logout = (req, res) => {
   req.logout();
   res.redirect(routes.home);
 };
-export const userDetail = (req, res) => res.render('userDetail', { pageTitle: 'userDetail' });
-export const editProfile = (req, res) => res.render('editProfile', { pageTitle: 'editProfile' });
-export const changePassword = (req, res) => res.render('changePassword', { pageTitle: 'changePassword' });
+export const userDetail = async (req, res) => {
+  const { params: { id } } = req;
+  try {
+    const user = await User.findById(id).populate('videos');
+    console.log(user);
+    res.render('userDetail', { pageTitle: 'userDetail', user });
+  } catch (error) {
+    res.redirect(routes.home);
+  }
+};
+export const getEditProfile = (req, res) => res.render('editProfile', { pageTitle: 'editProfile' });
+
+export const postEditProfile = async (req, res) => {
+  const {
+    body: { name, email },
+    file,
+  } = req;
+
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      name,
+      email,
+      avatarUrl: file ? file.path : req.user.avatarUrl,
+    });
+    res.redirect(routes.me);
+  } catch (error) {
+    res.render('editProfile', { pageTitle: 'editProfile' });
+  }
+};
+export const getChangePassword = (req, res) => res.render('changePassword', { pageTitle: 'changePassword' });
+export const postChangePassword = async (req, res) => {
+  const {
+    body: { oldPassword, newPassword, newPasswordCheck },
+  } = req;
+  try {
+    if (newPassword !== newPasswordCheck) {
+      res.status(400);
+      res.redirect(`/users/${routes.changePassword}`);
+    }
+    await req.user.changePassword(oldPassword, newPassword);
+    res.redirect(routes.me);
+  } catch (error) {
+    res.status(400);
+    res.redirect(`/users/${routes.changePassword}`);
+  }
+};
